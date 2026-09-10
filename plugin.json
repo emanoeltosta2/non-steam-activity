@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/SteamClientHomebrew/Millennium/main/src/sys/plugin-schema.json",
+  "name": "lua_tools_activity",
+  "common_name": "Non-Steam Activity",
+  "description": "Publishes games added by Lua as Steam activity.",
+  "version": "0.4.9",
+  "useBackend": true,
+  "backend": "backend",
+  "frontend": "frontend",
+  "backendType": "lua",
+  "include": [
+    "launcher/LuaStatusMonitor.exe"
+  ],
+  "webkitApiVersion": "2.0.0"
+}

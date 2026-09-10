@@ -1,0 +1,16 @@
+node_modules/
+/.build-tools/
+/.pnpm-store/
+/pnpm-lock.yaml
+/pnpm-workspace.yaml
+/.npm-cache/
+/.millennium/*
+!/.millennium/Dist/
+/.millennium/Dist/*
+!/.millennium/Dist/index.js
+/dist/
+/.publication-reference/
+/launcher/bin/
+/launcher/obj/
+/launcher/publish/
+/launcher/publish-*/

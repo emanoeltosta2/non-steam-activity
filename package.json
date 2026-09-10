@@ -1,0 +1,23 @@
+{
+  "name": "lua-tools-activity",
+  "version": "0.4.9",
+  "description": "Millennium plugin that publishes Lua games as Steam activity.",
+  "type": "module",
+  "main": "./frontend/index.tsx",
+  "scripts": {
+    "dev": "millennium-ttc --build dev",
+    "build": "millennium-ttc --build prod --no-update",
+    "test": "node --test tests/*.test.cjs",
+    "package": "npm test && npm run build && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1"
+  },
+  "devDependencies": {
+    "@steambrew/api": "5.8.4",
+    "@steambrew/client": "5.8.5",
+    "@steambrew/ttc": "3.3.7",
+    "@types/react": "19.1.1",
+    "@types/react-dom": "19.1.1",
+    "typescript": "5.9.3"
+  },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}
