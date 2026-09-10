@@ -4,6 +4,10 @@
 
 It is an independent project and is not affiliated with, endorsed by, or distributed with Lua Tools.
 
+## Game privacy
+
+Games marked **Private** in Steam do not start the activity helper. The plugin checks the original game's private status before preparing and launching the helper, and closes the helper if the game becomes private while running. It never closes the real game to hide activity. If Steam's private-app list has not loaded or cannot be read, activity is omitted. Changing a running game back to public does not automatically restart its helper; relaunch the game to publish activity again.
+
 ## Features
 
 - Detects Lua Tools games automatically; there is no hard-coded game list.
@@ -28,7 +32,7 @@ It is an independent project and is not affiliated with, endorsed by, or distrib
 
 1. Install Millennium first and open Steam once to confirm that Millennium's settings are available.
 2. Install Lua Tools and the .NET 8 Desktop Runtime listed above.
-3. Download `non-steam-activity-0.4.9-windows-x64.zip` from the repository's Releases assets, if published. Alternatively use **Code → Download ZIP**. Version 0.4.9 includes the compiled frontend in both distributions.
+3. Download `non-steam-activity-1.0.0-windows-x64.zip` from the repository's Releases assets. Alternatively use **Code → Download ZIP**. Version 1.0.0 includes the compiled frontend in both distributions.
 4. Extract the ZIP. Verify that the plugin folder contains `plugin.json`, `.millennium/Dist/index.js`, `backend` and `launcher/LuaStatusMonitor.exe`.
 5. Exit Steam completely, including from the system tray.
 6. Copy the **contents of the extracted plugin folder**, including `.millennium`, to the Millennium plugins directory. Replace the old plugin files when updating. Use the location of your own Steam installation; a typical destination is:
@@ -65,8 +69,8 @@ Copy-Item launcher/publish/LuaStatusMonitor.exe launcher/LuaStatusMonitor.exe -F
 
 On Windows, run `npm run package`. It tests and compiles the frontend, then creates:
 
-- `dist/non-steam-activity-0.4.9-github-source.zip`: clean repository contents, including source, tests, workflow and compiled frontend. Extract and copy its contents into your repository checkout, preserving your checkout's `.git` folder and any unrelated repository files.
-- `dist/non-steam-activity-0.4.9-windows-x64.zip`: installation package to attach to a GitHub Release tagged `v0.4.9`.
+- `dist/non-steam-activity-1.0.0-github-source.zip`: clean repository contents, including source, tests, workflow and compiled frontend. Extract and copy its contents into your repository checkout, preserving your checkout's `.git` folder and any unrelated repository files.
+- `dist/non-steam-activity-1.0.0-windows-x64.zip`: installation package to attach to a GitHub Release tagged `v1.0.0`.
 - A `.sha256` checksum for each archive.
 
 The packaging script uses an explicit file list and excludes local caches, dependencies and diagnostic tools. Add new source files to that list when extending the plugin. The GitHub workflow tests and packages pushes and pull requests; it does not publish a release automatically.

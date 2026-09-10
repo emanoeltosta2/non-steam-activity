@@ -14,7 +14,7 @@ $runtimeFiles = @(
 $sourceFiles = $runtimeFiles + @(
     '.gitignore', '.github/workflows/validate.yml', 'package.json', 'package-lock.json',
     'tsconfig.json', 'frontend/index.tsx', 'launcher/Program.cs',
-    'launcher/LuaStatusMonitor.csproj', 'tests/appids.test.cjs', 'scripts/package.ps1'
+    'launcher/LuaStatusMonitor.csproj', 'tests/appids.test.cjs', 'tests/privacy.test.cjs', 'scripts/package.ps1'
 )
 $outputDirectory = Join-Path $projectRoot 'dist'
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null

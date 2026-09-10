@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0
+
+- Respect the original game's Steam Private setting before creating or starting its activity helper.
+- Stop only the helper when a running game becomes private; preserve normal Steam and desktop-shortcut game launches.
+- Omit activity until Steam's private-app list is available, and recheck privacy after asynchronous launch preparation.
+- Continue privacy enforcement during backend errors and ignore completion of replaced monitor sessions.
+- Add seven privacy regression tests (14 tests total). Built against the installed Steam client's private-app query observer and BIsAppPrivate API; live profile behavior still requires verification in Steam.
+
 ## 0.4.9
 
 - Fix detection when Lua Tools has exactly one game: accept the numeric AppID produced by JSON parsing the backend response.

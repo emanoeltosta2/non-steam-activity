@@ -3,7 +3,7 @@
   "name": "lua_tools_activity",
   "common_name": "Non-Steam Activity",
   "description": "Publishes games added by Lua as Steam activity.",
-  "version": "0.4.9",
+  "version": "1.0.0",
   "useBackend": true,
   "backend": "backend",
   "frontend": "frontend",

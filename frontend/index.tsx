@@ -45,6 +45,35 @@ let originalSteamRunGame: SteamRunGame | undefined;
 const recentLaunches = new Map<number, number>();
 const steamUrlRegistrations = new Map<number, unknown>();
 const shortcutLaunchesInFlight = new Set<number>();
+let activeMonitor: ShortcutResult | undefined;
+
+function canPublishActivity(sourceAppId: number): boolean {
+  try {
+    const store = (globalThis as any).appStore;
+    // Steam initializes the private-app set empty, before the account query
+    // resolves. An empty set alone must never be interpreted as public.
+    const privacy = store?.m_privateAppsObserver?.getCurrentResult?.();
+    return privacy?.isSuccess === true
+      && typeof privacy.data?.has === 'function'
+      && privacy.data.has(sourceAppId) === false
+      && typeof store?.BIsAppPrivate === 'function'
+      && store.BIsAppPrivate(sourceAppId) === false;
+  } catch {
+    return false;
+  }
+}
+
+function requirePublicActivity(sourceAppId: number) {
+  if (!canPublishActivity(sourceAppId)) {
+    throw new Error('Atividade omitida: jogo privado ou privacidade ainda indisponível.');
+  }
+}
+
+async function stopMonitor(result: ShortcutResult) {
+  if (activeMonitor !== result) return;
+  await getApps().TerminateApp(result.runGameId, true);
+  if (activeMonitor === result) activeMonitor = undefined;
+}
 
 function getApps(): any {
   const apps = (globalThis as any).SteamClient?.Apps;
@@ -279,7 +308,9 @@ async function syncLuaToolsApp(game: LuaToolsGame | number | string): Promise<Sh
   const input = normalizeInput(game);
   const sourceAppId = numericSourceAppId(input.appId);
   if (!sourceAppId) throw new Error('AppID do Lua Tools inválido.');
+  requirePublicActivity(sourceAppId);
   const launcher = await getLuaToolsLauncher(sourceAppId);
+  requirePublicActivity(sourceAppId);
   const name = String(input.name || launcher.name || `Steam App ${sourceAppId}`);
   let cache = readSharedCache();
   let reused = false;
@@ -299,6 +330,7 @@ async function syncLuaToolsApp(game: LuaToolsGame | number | string): Promise<Sh
     writeSharedCache(cache);
   }
 
+  requirePublicActivity(sourceAppId);
   const signalToken = configureMonitorShortcut(cache.appId, name, launcher);
   if (created) hideMonitorShortcut(cache.appId);
   try {
@@ -314,25 +346,47 @@ async function clearPresenceWhenMonitorFinishes(result: ShortcutResult) {
   if (!result.signalToken) return;
   const deadline = Date.now() + 12 * 60 * 60 * 1000;
 
-  while (Date.now() < deadline) {
+  // Subscribe to the same query observer Steam uses for private-app changes.
+  // Polling below also protects against a replaced/unavailable observer.
+  let unsubscribe: (() => void) | undefined;
+  try {
+    unsubscribe = (globalThis as any).appStore?.m_privateAppsObserver?.subscribe?.(() => {
+      if (!canPublishActivity(result.sourceAppId)) {
+        void stopMonitor(result).catch((error) => console.warn('[Lua Tools Activity] Falha ao encerrar monitor:', error));
+      }
+    });
+  } catch { /* Polling remains active. */ }
+  try {
+  while (Date.now() < deadline && activeMonitor === result) {
     await new Promise((resolve) => window.setTimeout(resolve, 150));
+    if (activeMonitor !== result) return;
     try {
+      if (!canPublishActivity(result.sourceAppId)) {
+        await stopMonitor(result);
+        return;
+      }
       const finished = await callBackend<boolean>('monitor_finished', { token: result.signalToken });
+      if (activeMonitor !== result) return;
       if (finished === true || (finished as unknown) === 'true') {
-        getApps().TerminateApp?.(result.runGameId, true);
+        await stopMonitor(result);
         console.info('[Lua Tools Activity] monitor auxiliar encerrado de forma forçada');
         return;
       }
-    } catch {
-      return;
-    }
+    } catch { /* Keep enforcing privacy even if the backend is unavailable. */ }
   }
+  } finally { unsubscribe?.(); }
 }
 
 async function launchLuaToolsApp(game: LuaToolsGame | number | string): Promise<ShortcutResult> {
+  requirePublicActivity(numericSourceAppId(normalizeInput(game).appId));
+  if (typeof getApps().TerminateApp !== 'function') {
+    throw new Error('A Steam não disponibilizou o encerramento seguro do monitor.');
+  }
   const result = await syncLuaToolsApp(game);
   await new Promise((resolve) => window.setTimeout(resolve, 300));
+  requirePublicActivity(result.sourceAppId);
   getApps().RunGame(result.runGameId, '', -1, STEAM_URL_RUN_GAME_ID_OR_JUMPLIST);
+  activeMonitor = result;
   void clearPresenceWhenMonitorFinishes(result);
   return result;
 }
@@ -342,7 +396,7 @@ function scheduleLuaToolsMonitor(rawAppId: number | string, origin: string) {
   if (!sourceAppId || knownShortcutIds.has(String(rawAppId))) return;
 
   const start = () => {
-    if (!luaToolsAppIds.has(sourceAppId)) return;
+    if (!luaToolsAppIds.has(sourceAppId) || !canPublishActivity(sourceAppId)) return;
 
     const now = Date.now();
     const previous = recentLaunches.get(sourceAppId) || 0;
@@ -383,6 +437,10 @@ async function launchFromSteamUrlShortcut(sourceAppId: number, url: string) {
   shortcutLaunchesInFlight.add(sourceAppId);
 
   try {
+    if (!canPublishActivity(sourceAppId)) {
+      originalSteamRunGame?.(String(sourceAppId), '', -1, STEAM_URL_RUN_GAME_ID_OR_JUMPLIST);
+      return;
+    }
     console.info(`[Lua Tools Activity] AppID ${sourceAppId}: atalho Steam interceptado (${url})`);
     const monitor = await launchLuaToolsApp({ appId: sourceAppId });
     if (!await waitForMonitorStart(monitor)) {

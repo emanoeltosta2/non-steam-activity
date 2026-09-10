@@ -1,6 +1,6 @@
 {
   "name": "lua-tools-activity",
-  "version": "0.4.9",
+  "version": "1.0.0",
   "description": "Millennium plugin that publishes Lua games as Steam activity.",
   "type": "module",
   "main": "./frontend/index.tsx",
@@ -18,6 +18,8 @@
     "@types/react-dom": "19.1.1",
     "typescript": "5.9.3"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "license": "MIT"
 }
