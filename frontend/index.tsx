@@ -436,7 +436,6 @@ function installLuaToolsRunGameHook(): boolean {
     return originalResult;
   };
 
-  apps.RunGame.toString = () => originalRunGame.toString();
   runGameHookInstalled = true;
   console.info('[Lua Tools Activity] monitor da biblioteca instalado');
   void refreshLuaToolsAppIds()
